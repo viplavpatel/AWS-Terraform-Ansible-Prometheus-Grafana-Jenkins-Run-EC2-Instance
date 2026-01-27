@@ -1,0 +1,113 @@
+---
+- name: BootStrap Prometheus and Grafana
+  hosts: main # Target servers from inventory
+  become: yes # Ensure we have root privileges
+  vars:
+    listen_address: 0.0.0.0
+    listen_port: 9090
+  tasks:
+    - name: Create Grafana repository file
+      copy:
+        dest: /etc/yum.repos.d/grafana.repo # Path to the repo file
+        content: | # Grafana YUM repository
+          [grafana]
+          name=grafana
+          baseurl=https://rpm.grafana.com
+          repo_gpgcheck=1
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://rpm.grafana.com/gpg.key
+          sslverify=1
+          sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+
+    - name: Install Grafana
+      yum:
+        name: grafana # Grafana package name
+        state: present # Ensure Grafana is installed
+
+    - name: Start and enable Grafana service
+      systemd:
+        name: grafana-server # Grafana service name
+        state: started # Start the Grafana service
+        enabled: yes # Enable Grafana to start on boot
+
+    - name: Check Grafana status
+      systemd:
+        name: grafana-server # Grafana service name
+        state: started # Ensure Grafana is running
+      register: grafana_status # Register the status output
+
+    - name: Display Grafana info
+      debug:
+        msg: "Grafana is running! Access it at http://{{ ansible_default_ipv4.address }}:3000"
+        
+    - name: Download Prometheus
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz # URL to download Prometheus
+        dest: /home/ec2-user/prometheus.tar.gz # Destination path on the remote machine
+    - name: Extract Prometheus
+      ansible.builtin.unarchive:
+        src: /home/ec2-user/prometheus.tar.gz # Source tarball path
+        dest: /home/ec2-user/ # Destination directory
+        remote_src: yes # The file is already on the remote machine
+    - name: Create Prom Group
+      ansible.builtin.group:
+        name: prometheus
+        state: present
+    - name: Create Prom User
+      ansible.builtin.user:
+        name: prometheus
+        group: prometheus
+        shell: /sbin/nologin # Disable shell access
+    - name: Create Prom directories
+      ansible.builtin.file:
+        path: "{{ item }}" # Directory path
+        state: directory # Ensure it's a directory
+        recurse: yes # Create parent directories if needed
+        owner: prometheus # Set owner to prometheus user
+        group: prometheus # Set group to prometheus group
+        mode: '0755' # Set directory permissions
+      loop:
+        - /etc/prometheus
+        - /etc/prometheus/rules
+        - /etc/prometheus/rules.d
+        - /etc/prometheus/files_sd
+        - /var/lib/prometheus  
+   
+    - name: Copy Files
+      ansible.builtin.copy:
+        src: "{{ item }}" # loop source file path
+        dest: /usr/local/bin/ # Destination path
+        remote_src: yes # The file is already on the remote machine
+        mode: '0755' # Set executable permissions
+        owner: prometheus # Set owner to prometheus user
+        group: prometheus # Set group to prometheus group
+      loop:
+        - /home/ec2-user/prometheus-2.30.3.linux-amd64/prometheus
+        - /home/ec2-user/prometheus-2.30.3.linux-amd64/promtool
+    - name: Copy Files
+      ansible.builtin.copy:
+        src: "{{ item }}" # loop source file path
+        dest: /etc/prometheus/ # Destination path
+        remote_src: yes # The file is already on the remote machine
+      loop:
+        - /home/ec2-user/prometheus-2.30.3.linux-amd64/consoles
+        - /home/ec2-user/prometheus-2.30.3.linux-amd64/console_libraries
+        
+    - name: Create Config Files
+      ansible.builtin.template:
+        src: prometheus.yml.j2 # Source template file
+        dest: /etc/prometheus/prometheus.yml # Destination path
+
+
+    - name: Create Systemd Files
+      ansible.builtin.template:
+        src: prometheus.service.j2 # Source template file
+        dest: /etc/systemd/system/prometheus.service # Destination path
+     
+        
+    - name: Ensure Prometheus is started
+      ansible.builtin.systemd:
+        state: started
+        name: prometheus
+        enabled: yes

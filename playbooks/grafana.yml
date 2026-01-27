@@ -1,0 +1,39 @@
+---
+- name: Install and Run Grafana
+  hosts: webservers # Target servers from inventory
+  become: yes # Ensure we have root privileges
+  tasks:
+    - name: Create Grafana repository file
+      copy:
+        dest: /etc/yum.repos.d/grafana.repo # Path to the repo file
+        content: | # Grafana YUM repository
+          [grafana]
+          name=grafana
+          baseurl=https://rpm.grafana.com
+          repo_gpgcheck=1
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://rpm.grafana.com/gpg.key
+          sslverify=1
+          sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+
+    - name: Install Grafana
+      yum:
+        name: grafana # Grafana package name
+        state: present # Ensure Grafana is installed
+
+    - name: Start and enable Grafana service
+      systemd:
+        name: grafana-server # Grafana service name
+        state: started # Start the Grafana service
+        enabled: yes # Enable Grafana to start on boot
+
+    - name: Check Grafana status
+      systemd:
+        name: grafana-server # Grafana service name
+        state: started # Ensure Grafana is running
+      register: grafana_status # Register the status output
+
+    - name: Display Grafana info
+      debug:
+        msg: "Grafana is running! Access it at http://{{ ansible_default_ipv4.address }}:3000"

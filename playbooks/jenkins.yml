@@ -1,0 +1,28 @@
+---
+- name: Download and Run Jenkins
+  hosts: main # Target servers from inventory
+  become: yes # Ensure we have root privileges
+  tasks:
+    - name: Download Jenkins
+      ansible.builtin.get_url:
+        url: https://pkg.jenkins.io/rpm-stable/jenkins.repo # URL to download Jenkins repo file
+        dest: /etc/yum.repos.d/jenkins.repo # Destination path on the remote machine
+    - name: Install Java
+      yum:
+        name: java
+        state: present
+    - name: Install Jenkins
+      yum:
+        name: jenkins # Jenkins package name
+        state: present # Ensure Jenkins is installed
+    - name: Start and Enable Jenkins service
+      systemd:
+        name: jenkins # Jenkins service name
+        state: started # Start the Jenkins service
+        enabled: yes # Enable Jenkins to start on boot
+    - name: Check Jenkins status
+      systemd:
+        name: jenkins # Jenkins service name
+        state: started # Ensure Jenkins is running
+        
+        

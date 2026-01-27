@@ -1,0 +1,17 @@
+---
+- name: Uninstall Jenkins
+  hosts: main # Change to your target hosts
+  become: yes # Ensure we have root privileges
+  tasks:
+    - name: Stop Jenkins service
+      systemd:
+        name: jenkins
+        state: stopped
+    - name: Uninstall Jenkins
+      yum:
+        name: jenkins
+        state: absent
+    - name: Remove Jenkins repository file
+      file:
+        path: /etc/yum.repos.d/jenkins.repo
+        state: absent

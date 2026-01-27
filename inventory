@@ -1,0 +1,6 @@
+
+[main]
+13.43.73.92 ansible_user=ec2-user ansible_ssh_private_key_file=./linuxkey.pem ansible_python_interpreter=/usr/bin/python3.9
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

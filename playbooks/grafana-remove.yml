@@ -1,0 +1,21 @@
+
+---
+- name: Uninstall Grafana
+  hosts: localhost # Change to your target hosts
+  become: yes # Ensure we have root privileges
+  tasks:
+    - name: Stop Grafana service
+      systemd:
+        name: grafana-server # Grafana service name
+        state: stopped # Stop the Grafana service
+
+    - name: Uninstall Grafana
+      yum:
+        name: grafana # Grafana package name
+        state: absent # Ensure Grafana is uninstalled
+
+    - name: Remove repo file
+      file:
+        path: /etc/yum.repos.d/grafana.repo # Path to the repo file
+        state: absent # Ensure the repo file is removed
+        
