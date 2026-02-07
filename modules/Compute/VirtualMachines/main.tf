@@ -152,9 +152,9 @@ resource "aws_instance" "ec2_instance" {
   }
 
   # Run Grafana playbook from Windows/WSL
-  provisioner "local-exec" {
+  /*provisioner "local-exec" {
     command = "ansible-playbook -i ${path.root}/inventory ${path.root}/playbooks/grafana.yml"
-  }
+  }*/
 
   # Run Prometheus playbook from Windows/WSL
   provisioner "local-exec" {
