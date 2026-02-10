@@ -166,10 +166,13 @@ resource "aws_instance" "ec2_instance" {
     command = "ansible-playbook -i ${path.root}/inventory ${path.root}/playbooks/jenkins.yml"
   }
 
-  depends_on = [aws_eip.ec2_ip]
 }
 
 resource "aws_eip" "ec2_ip"{ //to assign static public IP
   domain = "vpc" //for VPC
-  instance = aws_instance.ec2_instance.id
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.ec2_instance.id
+  allocation_id = aws_eip.ec2_ip.id
 }
