@@ -170,3 +170,18 @@ resource "aws_eip_association" "eip_assoc" { //to associate EIP with EC2 instanc
   instance_id   = aws_instance.ec2_instance.id
   allocation_id = aws_eip.ec2_ip.id
 }
+
+# Generate aws_hosts inventory file for Jenkins
+resource "local_file" "aws_hosts" {
+  content = <<-EOT
+    [main]
+    ${aws_eip.ec2_ip.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=./linuxkey.pem ansible_python_interpreter=/usr/bin/python3.9
+
+    [webservers]
+    ${aws_eip.ec2_ip.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=./linuxkey.pem ansible_python_interpreter=/usr/bin/python3.9
+
+    [all:vars]
+    ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+  EOT
+  filename = "${path.root}/aws_hosts"
+}
