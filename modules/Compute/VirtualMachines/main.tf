@@ -117,7 +117,7 @@ data "aws_ami" "amazon_linux_2" { //to get latest Amazon Linux 2023 AMI
 
 resource "aws_instance" "ec2_instance" {
    ami           = data.aws_ami.amazon_linux_2.id
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
   
   subnet_id              = aws_subnet.subnet.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
@@ -129,7 +129,8 @@ resource "aws_instance" "ec2_instance" {
     Name = "ec2-instance-example"
   }
 
-  # Wait for SSH to be ready and instance to boot
+  # Provisioners commented out - run Ansible manually after instance is ready
+  /*
   provisioner "remote-exec" {
     inline = [
       "echo 'Instance is ready!'"
@@ -143,28 +144,21 @@ resource "aws_instance" "ec2_instance" {
     }
   }
 
-  # Create Ansible inventory file automatically
-  provisioner "local-exec" { // provisioner is used to execute local commands
+  provisioner "local-exec" {
     command = <<-EOT
       echo '[webservers]' > ${path.root}/inventory
       echo '${aws_eip.ec2_ip.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=${path.root}/linuxkey.pem ansible_python_interpreter=/usr/bin/python3.9' >> ${path.root}/inventory
     EOT
   }
 
-  # Run Grafana playbook from Windows/WSL
-  /*provisioner "local-exec" {
-    command = "ansible-playbook -i ${path.root}/inventory ${path.root}/playbooks/grafana.yml"
-  }*/
-
-  # Run Prometheus playbook from Windows/WSL
   provisioner "local-exec" {
     command = "ansible-playbook -i ${path.root}/inventory ${path.root}/playbooks/prometheus.yml"
   }
 
-  # Run Jenkins playbook from Windows/WSL
   provisioner "local-exec" {
     command = "ansible-playbook -i ${path.root}/inventory ${path.root}/playbooks/jenkins.yml"
   }
+  */
 
 }
 
@@ -172,7 +166,7 @@ resource "aws_eip" "ec2_ip"{ //to assign static public IP
   domain = "vpc" //for VPC
 }
 
-resource "aws_eip_association" "eip_assoc" {
+resource "aws_eip_association" "eip_assoc" { //to associate EIP with EC2 instance
   instance_id   = aws_instance.ec2_instance.id
   allocation_id = aws_eip.ec2_ip.id
 }

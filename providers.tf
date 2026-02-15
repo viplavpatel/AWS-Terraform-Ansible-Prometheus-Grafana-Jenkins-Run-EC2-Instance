@@ -9,7 +9,7 @@ terraform {
 
 provider "aws" {
   region     = "eu-west-2"
-  shared_credentials_files = ["~/.aws/credentials"] // Path to AWS credentials file
+  shared_credentials_files = ["~/.aws/credentials"] // Path to AWS credentials file, refers to /home/ec2-user/.aws/credentials in WSL
   # Credentials will be read from environment variables:
   # AWS_ACCESS_KEY_ID
   # AWS_SECRET_ACCESS_KEY
