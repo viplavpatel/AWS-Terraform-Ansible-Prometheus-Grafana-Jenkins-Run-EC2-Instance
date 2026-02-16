@@ -1,6 +1,6 @@
 ---
 - name: Install and Run Grafana
-  hosts: webservers # Target servers from inventory
+  hosts: main # Target servers from inventory
   become: yes # Ensure we have root privileges
   tasks:
     - name: Create Grafana repository file
