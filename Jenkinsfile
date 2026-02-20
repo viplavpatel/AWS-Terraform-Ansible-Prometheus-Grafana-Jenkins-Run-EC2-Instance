@@ -25,6 +25,12 @@ pipeline{
             sh 'terraform apply -auto-approve -no-color'
         }
     }
+    stage('Validate Apply'){
+        input{
+            message "Do you want to apply this plan ?" // we use input step to ask the user if they want to apply the changes or not, this is a manual step to ensure that the user has reviewed the plan and is aware of the changes that will be made to the infrastructure before applying them
+            ok "Apply Plan..." // this is the text that will be displayed on the button that the user will click to apply the plan
+        }
+    }
     stage('EC2 wait'){
         steps{
             sh 'aws ec2 wait instance-status-ok --region eu-west-2' // we use aws cli command to wait for the EC2 instance to be in running state before we run the ansible playbooks
