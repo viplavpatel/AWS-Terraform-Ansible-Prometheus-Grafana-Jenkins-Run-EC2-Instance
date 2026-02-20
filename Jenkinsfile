@@ -30,6 +30,11 @@ pipeline{
             sh 'aws ec2 wait instance-status-ok --region eu-west-2' // we use aws cli command to wait for the EC2 instance to be in running state before we run the ansible playbooks
         }
     }
+    stage('Run Ansible Playbook'){
+        steps{
+            ansiblePlaybook(credentialsId: 'ec2-ssh-key', inventory: 'aws_hosts', playbook: 'playbooks/prometheus.yml') // we use ansible-playbook command to run the playbook that installs prometheus and grafana on the EC2 instance
+        }
+    }
     stage('Terraform Destroy'){
         steps{
             sh 'terraform destroy -auto-approve -no-color'
