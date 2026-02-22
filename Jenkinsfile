@@ -20,11 +20,6 @@ pipeline{
             sh 'terraform plan -no-color'
         }
     }
-    stage('Terraform Apply'){
-        steps {
-            sh 'terraform apply -auto-approve -no-color'
-        }
-    }
     stage('Validate Apply'){
         input {
             message "Do you want to apply this plan ?" // we use input step to ask the user if they want to apply the changes or not, this is a manual step to ensure that the user has reviewed the plan and is aware of the changes that will be made to the infrastructure before applying them
@@ -34,6 +29,12 @@ pipeline{
             echo 'Apply accepted, applying changes...' // this is a message that will be displayed in the Jenkins console when the user clicks the button to apply the plan
         }
     }
+    stage('Terraform Apply'){
+        steps {
+            sh 'terraform apply -auto-approve -no-color'
+        }
+    }
+    
     stage('EC2 wait'){
         steps{
             sh 'aws ec2 wait instance-status-ok --region eu-west-2' // we use aws cli command to wait for the EC2 instance to be in running state before we run the ansible playbooks
@@ -75,6 +76,17 @@ pipeline{
         steps{
             sh 'terraform destroy -auto-approve -no-color'
         }
+    }
+  }
+  post{
+    success {
+        echo 'Pipeline completed successfully!' // this is a message that will be displayed in the Jenkins console when the pipeline completes successfully
+    }
+  }
+  post{
+    failure {
+       sh 'terraform destroy -auto-approve -no-color' // this is a command that will be run in the Jenkins console when the pipeline fails, it will destroy the infrastructure to avoid any unnecessary costs
+       echo 'Pipeline failed, infrastructure destroyed to avoid unnecessary costs.' // this is a message that will be displayed in the Jenkins console when the pipeline fails and the infrastructure is destroyed
     }
   }
 }
