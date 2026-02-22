@@ -44,11 +44,30 @@ pipeline{
             sh 'chmod 400 ./linuxkey.pem' // we use chmod command to set the permissions of the ssh key to 400 to make it more secure and to avoid any permission issues when we run the ansible playbooks
         }
     }
+    stage('Validate Ansible'){
+        input{
+            message "Do you want to run Ansible Playbook ?" // we use input step to ask the user if they want to run the ansible playbook or not, this is a manual step to ensure that the user has reviewed the changes that will be made to the infrastructure before applying them
+            ok "Run Ansible Playbook..." // this is the text that will be displayed on the button that the user will click to run the ansible playbook
+            steps{
+                echo 'Running Ansible Playbook...' // this is a message that will be displayed in the Jenkins console when the user clicks the button to run the ansible playbook
+            }
+        }
+    }
     stage('Run Ansible Playbook'){
         steps{
             ansiblePlaybook(credentialsId: 'ec2-ssh-key', inventory: 'aws_hosts', playbook: 'playbooks/prometheus.yml') // we use ansible-playbook command to run the playbook that installs prometheus and grafana on the EC2 instance
         }
     }
+    stage('Validate Terraform Destroy'){
+        input{
+            message "Do you wwant to destroy the infrastructure ?" // we use input step to ask the user if they want to destroy the infrastructure or not, this is a manual step to ensure that the user has reviewed the changes that will be made to the infrastructure before destroying it
+            ok "Destroy infrastructure" // this is the text that will be displayed on the button that the user will click to destroy the infrastructure
+            steps{
+                echo 'Destroying infrastructure ....'
+            }
+        }
+    }
+                
     stage('Terraform Destroy'){
         steps{
             sh 'terraform destroy -auto-approve -no-color'
