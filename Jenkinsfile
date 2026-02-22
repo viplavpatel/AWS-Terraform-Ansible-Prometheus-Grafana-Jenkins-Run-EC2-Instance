@@ -82,8 +82,7 @@ pipeline{
     success {
         echo 'Pipeline completed successfully!' // this is a message that will be displayed in the Jenkins console when the pipeline completes successfully
     }
-  }
-  post{
+  
     failure {
        sh 'terraform destroy -auto-approve -no-color' // this is a command that will be run in the Jenkins console when the pipeline fails, it will destroy the infrastructure to avoid any unnecessary costs
        echo 'Pipeline failed, infrastructure destroyed to avoid unnecessary costs.' // this is a message that will be displayed in the Jenkins console when the pipeline fails and the infrastructure is destroyed
