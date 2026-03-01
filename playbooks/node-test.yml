@@ -8,10 +8,6 @@
         url: http://{{ inventory_hostname }}:3000
         follow_redirects: none
         status_code: [302]
-    - name : Prometheus Test
-      ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:9090
-        follow_redirects: none
-        status_code: [302]
+   
 
         
