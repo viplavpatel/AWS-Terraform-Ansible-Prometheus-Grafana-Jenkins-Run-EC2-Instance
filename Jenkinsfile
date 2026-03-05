@@ -61,6 +61,13 @@ pipeline{
             ansiblePlaybook(credentialsId: 'ec2-ssh-key', inventory: 'aws_hosts', playbook: 'playbooks/prometheus.yml') // we use ansible-playbook command to run the playbook that installs prometheus and grafana on the EC2 instance
         }
     }
+    stage('Test Grafana and Prometheus'){
+        steps{
+            echo 'Testing Grafana and Prometheus...' // this is a message that will be displayed in the Jenkins console when the user clicks the button to test grafana and prometheus
+            ansiblePlaybook(credentialsId: 'ec2-ssh-key', inventory: 'aws_hosts', playbook: 'playbooks/node-test.yml')
+        }
+    
+    }
     stage('Validate Terraform Destroy'){
         input{
             message "Do you wwant to destroy the infrastructure ?" // we use input step to ask the user if they want to destroy the infrastructure or not, this is a manual step to ensure that the user has reviewed the changes that will be made to the infrastructure before destroying it
